@@ -148,7 +148,7 @@ public class wifiService extends Service {
                                 process.getOutputStream().write(("ip link set dev br0 arp on\n").getBytes());
                                 process.getOutputStream().write(("ip link set dev br0 up\n").getBytes());
                                 process.getOutputStream().write(("ip route add default via 192.168.1.1 dev br0\n").getBytes());
-                                process.getOutputStream().write(("iip route add 192.168.1.0/24 dev wlan0 scope link table 61\n").getBytes());
+                                process.getOutputStream().write(("ip route add 192.168.1.0/24 dev wlan0 scope link table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add fwmark 0x61 table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add iif tun0 table 61\n").getBytes());
                                 process.getOutputStream().write(("killall -9 dnsmasq\n").getBytes());
@@ -195,9 +195,6 @@ public class wifiService extends Service {
                 serverSocket = new ServerSocket(8080);
                 while (true) {
                     n = serverSocket.accept();
-                    n.setKeepAlive(true);
-                    n.setOOBInline(true);
-                    n.setTcpNoDelay(true);
                     y = new vr(n);
                     y.start();
                 }
