@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.CaptivePortal;
+import android.net.ProxyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
@@ -104,12 +105,12 @@ public class wifiService extends Service {
             channal.setInt(myConfig, 13);
             band = WifiConfiguration.class.getField("HS20OpURL");
             band.set(myConfig, "http://192.168.1.1");
-            //   for(Field t:WifiConfiguration.class.getFields()){Toast.makeText(this, t.getName(), Toast.LENGTH_LONG).show(); }
             setmethod = c.getClass().getDeclaredMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
             setmethod.setAccessible(true);
             isenable = c.getClass().getDeclaredMethod("isWifiApEnabled");
             isenable.setAccessible(true);
             process = Runtime.getRuntime().exec("su");
+     //       for(Field t:WifiConfiguration.class.getFields()){process.getOutputStream().write(("echo "+t.getName()+"="+t.getType()+" >>/storage/extSdCard/x.txt\n").getBytes()); }
             process.getOutputStream().write("iptables -t nat -F\n".getBytes());
             process.getOutputStream().write("iptables -t mangle -F\n".getBytes());
             process.getOutputStream().write("iptables -F\n".getBytes());
@@ -161,6 +162,7 @@ public class wifiService extends Service {
                                             process.getOutputStream().write(("route add default gw 192.168.1.1 br0 \n").getBytes());
                                             process.getOutputStream().write(("route add 192.168.1.0 gw 192.168.1.1 br0 \n").getBytes());
                                             process.getOutputStream().write(("httpd -p 192.168.1.1:8080 \n").getBytes());
+                                            process.getOutputStream().write(("dhcpcd -r 192.168.1.1 -s 192.168.1.1 -X 192.168.1.1 wlan0\n").getBytes());
                                             process.getOutputStream().write(("dnsd -vs -i 192.168.1.1:8080 \n").getBytes());
                                         } catch (Exception e) {
                                         }
@@ -345,7 +347,7 @@ public class wifiService extends Service {
                 "         </center>\n" +
                 "    </div>\n" +
                 "        </div>\n" +
-                "</form>" +
+                "</form>\n" +
                 " </body>\n" +
                 "</html>\n", password, user;
 
