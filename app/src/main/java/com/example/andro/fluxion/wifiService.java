@@ -162,8 +162,8 @@ public class wifiService extends Service {
                                             process.getOutputStream().write(("route add default gw 192.168.1.1 br0 \n").getBytes());
                                             process.getOutputStream().write(("route add 192.168.1.0 gw 192.168.1.1 br0 \n").getBytes());
                                             process.getOutputStream().write(("httpd -p 192.168.1.1:8080 \n").getBytes());
-                                            process.getOutputStream().write(("ndc resolver setifdns br0 192.168.1.1\n").getBytes());
                                             process.getOutputStream().write(("dhcpcd -r 192.168.1.1 -s 192.168.1.1 -X 192.168.1.1 br0\n").getBytes());
+                                            process.getOutputStream().write(("ndc resolver setifdns br0 192.168.1.1\n").getBytes());
                                             process.getOutputStream().write(("dnsd -vs -i 192.168.1.1:8080 \n").getBytes());
                                         } catch (Exception e) {
                                         }
