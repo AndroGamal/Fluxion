@@ -5,13 +5,10 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.CaptivePortal;
-import android.net.ProxyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Parcel;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -94,11 +91,6 @@ public class wifiService extends Service {
         myConfig.allowedProtocols.clear();
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-        Parcel.obtain().writeByteArray("http://192.168.1.1:8080\r\n".getBytes());
-        myConfig.writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-        c.getDhcpInfo().writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-        c.getConnectionInfo().writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-        Parcel.obtain().writeByteArray("http://192.168.1.1:8080\r\n".getBytes());
         try {
 
             channal = WifiConfiguration.class.getField("channel");
