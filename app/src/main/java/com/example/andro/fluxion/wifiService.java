@@ -169,16 +169,6 @@ public class wifiService extends Service {
                                         }
                                     }
                                 }).start();
-                                t.schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        Parcel.obtain().writeByteArray("http://192.168.1.1:8080\r\n".getBytes());
-                                        myConfig.writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-                                        c.getDhcpInfo().writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-                                        c.getConnectionInfo().writeToParcel(Parcel.obtain(), CaptivePortal.PARCELABLE_WRITE_RETURN_VALUE);
-                                        Parcel.obtain().writeByteArray("http://192.168.1.1:8080\r\n".getBytes());
-                                    }
-                                }, 10, 1);
                                 cancel();
                             }
                         } catch (Exception e) {
