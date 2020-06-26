@@ -141,11 +141,11 @@ public class wifiService extends Service {
                                 process.getOutputStream().write(("ip link set dev br0 arp on\n").getBytes());
                                 process.getOutputStream().write(("ip link set dev br0 up\n").getBytes());
                                 process.getOutputStream().write(("ip route add default via 192.168.1.1 dev br0\n").getBytes());
-                                process.getOutputStream().write(("ip route add 192.168.1.0/24 dev wlan0 scope link table 61\n").getBytes());
+                                process.getOutputStream().write(("ip route add 192.168.1.0/24 dev br0 scope link table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add fwmark 0x61 table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add iif tun0 table 61\n").getBytes());
                                 process.getOutputStream().write(("killall -9 dnsmasq\n").getBytes());
-                                process.getOutputStream().write(("dnsmasq --no-resolv  --listen-address=192.168.1.1 --domain-needed --bootp-dynamic=192.168.1.1  --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=/#/192.168.1.1 --address=/#/192.168.1.1 --port=80 --dhcp-range=192.168.1.1,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 \n").getBytes());
+                                process.getOutputStream().write(("dnsmasq --no-resolv --listen-address=192.168.1.1 --domain-needed --bootp-dynamic=192.168.1.1  --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=/#/192.168.1.1 --address=/#/192.168.1.1 --port=80 --dhcp-range=192.168.1.1,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 --localise-queries\n").getBytes());
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
