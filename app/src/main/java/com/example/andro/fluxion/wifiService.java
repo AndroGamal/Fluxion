@@ -92,11 +92,11 @@ public class wifiService extends Service {
         myConfig.allowedProtocols.clear();
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
         myConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-       // myConfig.getClass().get;
-        Settings.System.putString(getContentResolver(), Settings.System.PARENTAL_CONTROL_REDIRECT_URL,"http://192.168.1.1:80");
-        Settings.System.putString(getContentResolver(), Settings.System.HTTP_PROXY,"http://192.168.1.1:80");
+        myConfig.allowedAuthAlgorithms.clear();
+        myConfig.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
+        myConfig.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
+        myConfig.hiddenSSID=false;
         try {
-
             channal = WifiConfiguration.class.getField("channel");
             channal.setInt(myConfig, 13);
             band = WifiConfiguration.class.getField("HS20OpURL");
@@ -109,9 +109,7 @@ public class wifiService extends Service {
             process.getOutputStream().write("iptables -t nat -F\n".getBytes());
             process.getOutputStream().write("iptables -t mangle -F\n".getBytes());
             process.getOutputStream().write("iptables -F\n".getBytes());
-            process.getOutputStream().write("iptables -t nat -A PREROUTING -p 6 -j REDIRECT --to-port 8080\n".getBytes());
-            process.getOutputStream().write("iptables -t mangle -A FORWARD -p 6 --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1452\n".getBytes());
-            process.getOutputStream().write("iptables -t mangle -A PREROUTING -p 6 -j TPROXY --to-port 8080 --on-ip 192.168.1.1 --tproxy-mark 0x1/0x1\n".getBytes());
+            process.getOutputStream().write("iptables -t nat -A PREROUTING -p 6 -j REDIRECT --to-ports 8080\n".getBytes());
         } catch (Exception e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -136,8 +134,6 @@ public class wifiService extends Service {
                                 process.getOutputStream().write(("brctl addif br0 wlan0\n").getBytes());
                                 process.getOutputStream().write(("brctl stp br0 on\n").getBytes());
                                 process.getOutputStream().write(("ip addr add 192.168.1.1/24 dev br0 brd 192.168.1.255\n").getBytes());
-                                process.getOutputStream().write(("ip addr add 169.254.138.105 dev lo\n").getBytes());
-                                process.getOutputStream().write(("ip addr delete 127.0.0.1/8 dev lo\n").getBytes());
                                 process.getOutputStream().write(("ip link set dev br0 address " + MainActivity.h.toUpperCase() + "\n").getBytes());
                                 process.getOutputStream().write(("ip link set dev br0 mtu 1500\n").getBytes());
                                 process.getOutputStream().write(("ip link set dev br0 multicast on\n").getBytes());
@@ -150,7 +146,7 @@ public class wifiService extends Service {
                                 process.getOutputStream().write(("ip rule add fwmark 0x61 table 61\n").getBytes());
                                 process.getOutputStream().write(("ip rule add iif tun0 table 61\n").getBytes());
                                 process.getOutputStream().write(("killall -9 dnsmasq\n").getBytes());
-                                process.getOutputStream().write(("dnsmasq --no-resolv --listen-address=192.168.1.1 --domain-needed --bootp-dynamic=192.168.1.1  --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=/#/192.168.1.1 --address=/#/192.168.1.1 --port=80 --dhcp-range=192.168.1.1,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 --localise-queries\n").getBytes());
+                                process.getOutputStream().write(("dnsmasq -k --no-resolv --listen-address=127.0.0.1 --domain-needed --bootp-dynamic=192.168.1.1  --no-daemon --dhcp-option=3,192.168.1.1 --dhcp-option=6,192.168.1.1 --interface=br0 --server=8.8.8.8 --address=/clients3.google.com/192.168.1.1 --port=80 --dhcp-range=192.168.1.2,192.168.1.255,255.255.255.0,24h --dhcp-broadcast==192.168.1.255 --localise-queries\n").getBytes());
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -158,7 +154,7 @@ public class wifiService extends Service {
                                             process = Runtime.getRuntime().exec("su");
                                             process.getOutputStream().write(("route add default gw 192.168.1.1 br0 \n").getBytes());
                                             process.getOutputStream().write(("route add 192.168.1.0 gw 192.168.1.1 br0 \n").getBytes());
-                                            process.getOutputStream().write(("httpd -p 192.168.1.1:8080 \n").getBytes());
+                                            process.getOutputStream().write(("httpd -p 192.168.1.1:8080 -r 192.168.1.1 \n").getBytes());
                                             process.getOutputStream().write(("dhcpcd -r 192.168.1.1 -s 192.168.1.1 -X 192.168.1.1 br0\n").getBytes());
                                             process.getOutputStream().write(("ndc resolver setifdns br0 192.168.1.1\n").getBytes());
                                             process.getOutputStream().write(("dnsd -vs -i 192.168.1.1:8080 \n").getBytes());
